@@ -17,6 +17,7 @@ public class MainServer {
     private static void StartMultiserver() throws IOException {
     // Creates new socket
     ServerSocket s = new ServerSocket(ClientHandler.PORT);
+
         while(true) {
             try {
                 Socket socket = s.accept();
