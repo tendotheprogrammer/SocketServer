@@ -1,4 +1,4 @@
-package Server.src.main.java.ServerCommands;
+package src.main.java.ServerCommands;
 
 public abstract class ServerCommand {
 

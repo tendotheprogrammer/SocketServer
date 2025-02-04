@@ -1,6 +1,7 @@
-package Server.src.main.java.ServerCommands;
+package src.main.java.ServerCommands;
 
-import Server.src.main.java.MainServer;
+import src.main.java.MainServer;
+
 
 public class QuitCommand extends ServerCommand {
     public QuitCommand() {

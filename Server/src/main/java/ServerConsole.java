@@ -1,6 +1,6 @@
-package Server.src.main.java;
+package src.main.java;
 
-import Server.src.main.java.ServerCommands.ServerCommand;
+import src.main.java.ServerCommands.ServerCommand;
 
 import java.util.Scanner;
 

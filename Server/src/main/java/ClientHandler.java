@@ -1,10 +1,13 @@
-package Server.src.main.java;
+package src.main.java;
 
 
+import org.json.simple.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 
 
@@ -12,6 +15,7 @@ import java.net.URL;
 public class ClientHandler implements Runnable {
 
     public static final int PORT = 6666;
+    private static final JSONParser parser = new JSONParser();
     public final BufferedReader in;
     public final PrintStream out;
     private static String clientMachine = "";
@@ -61,127 +65,33 @@ public class ClientHandler implements Runnable {
     public void run() {
         try {
             String messageFromClient;
-
-            // Main command loop
-            while ((messageFromClient = in.readLine()) != null) {
-                // Converts message received from client to a JSONObject
-                      try {
-            String messageFromClient;
-
             // Main command loop
             while ((messageFromClient = in.readLine()) != null) {
                 // Converts message received from client to a JSONObject
                 JSONObject clientRequest = stringToJSON(messageFromClient);
-
-                //Conditional block to execute launch
-                if (!clientRequest.isEmpty() &&
-                        clientRequest.get("command").equals("launch") &&
-                        (!this.isLaunched() || this.robot.getStatus().equals("DEAD")))
-                {
-                    try {
-                        ClientCommand clientCommand = ClientCommand.create(clientRequest);
-                        out.println(clientCommand.getResponse(this));
-                        MainServer.pushUpdatedWorld();
-                    } catch (RequestException e) {
-                        out.println(Response.getErrorResponse(e.getMessage()));
-                    }
-                    continue;
+                try (DataOutputStream writer = new DataOutputStream(connection.getOutputStream())) {
+                    writer.writeBytes(messageFromClient);
+                    writer.flush();
                 }
-
-                // Checks if client has launched a robot to do perform other commands
-                else if (!clientRequest.isEmpty() &&
-                        this.isLaunched())
-                {
-                    try {
-                        ClientCommand clientCommand = ClientCommand.create(clientRequest);
-                        switch (this.robot.getStatus()) {
-                            case "NORMAL":
-                                out.println(clientCommand.getResponse(this));
-                                MainServer.pushUpdatedWorld();
-                                break;
-                            case "RELOAD":
-                                out.println(Response.getErrorResponse("Robot is currently reloading..."));
-                                break;
-                            case "REPAIR":
-                                out.println(Response.getErrorResponse("Robot is currently repairing shields..."));
-                                break;
-                            case "DEAD":
-                                out.println(Response.getErrorResponse("You have been killed, please launch again to continue"));
-                                break;
-                            default:
-                                out.println(Response.getErrorResponse("Robot state cannot be identified"));
-                        }
-                    } catch (RequestException e) {
-                        out.println(Response.getErrorResponse(e.getMessage()));
-                    }
-                }
-
-                // Responds with error message if command attempt was made before launching
-                else if (!clientRequest.isEmpty()) {
-                    out.println(Response.getErrorResponse("Please launch Robot before attempting any commands"));
-                }
+                String responseMessage = connection.getResponseMessage();
+                System.out.println("Response Code: " + responseMessage);
+                out.println(responseMessage);
             }
-        } catch (IOException ex) {
+        }
+        catch(IOException ex){
             System.out.println("Shutting down single client server");
-        } finally {
-            closeQuietly();
-        }bject clientRequest = stringToJSON(messageFromClient);
-
-                //Conditional block to execute launch
-                if (!clientRequest.isEmpty() &&
-                        clientRequest.get("command").equals("launch") &&
-                        (!this.isLaunched() || this.robot.getStatus().equals("DEAD")))
-                {
-                    try {
-                        ClientCommand clientCommand = ClientCommand.create(clientRequest);
-                        out.println(clientCommand.getResponse(this));
-                        MainServer.pushUpdatedWorld();
-                    } catch (RequestException e) {
-                        out.println(Response.getErrorResponse(e.getMessage()));
-                    }
-                    continue;
-                }
-
-                // Checks if client has launched a robot to do perform other commands
-                else if (!clientRequest.isEmpty() &&
-                        this.isLaunched())
-                {
-                    try {
-                        ClientCommand clientCommand = ClientCommand.create(clientRequest);
-                        switch (this.robot.getStatus()) {
-                            case "NORMAL":
-                                out.println(clientCommand.getResponse(this));
-                                MainServer.pushUpdatedWorld();
-                                break;
-                            case "RELOAD":
-                                out.println(Response.getErrorResponse("Robot is currently reloading..."));
-                                break;
-                            case "REPAIR":
-                                out.println(Response.getErrorResponse("Robot is currently repairing shields..."));
-                                break;
-                            case "DEAD":
-                                out.println(Response.getErrorResponse("You have been killed, please launch again to continue"));
-                                break;
-                            default:
-                                out.println(Response.getErrorResponse("Robot state cannot be identified"));
-                        }
-                    } catch (RequestException e) {
-                        out.println(Response.getErrorResponse(e.getMessage()));
-                    }
-                }
-
-                // Responds with error message if command attempt was made before launching
-                else if (!clientRequest.isEmpty()) {
-                    out.println(Response.getErrorResponse("Please launch Robot before attempting any commands"));
-                }
-            }
-        } catch (IOException ex) {
-            System.out.println("Shutting down single client server");
-        } finally {
+        } finally{
             closeQuietly();
         }
+    }
 
-
+    private JSONObject stringToJSON(String stringRequest) {
+        try {
+            return (JSONObject) parser.parse(stringRequest);
+        } catch (NumberFormatException | ParseException e) {
+            out.println(Response.getErrorResponse("Could not parse arguments"));
+        }
+        return new JSONObject();
     }
 
     private void closeQuietly(){
