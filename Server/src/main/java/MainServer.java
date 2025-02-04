@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +13,6 @@ public class MainServer {
 
     private static final List<Thread> threadList = new ArrayList<Thread>();
     private static final List<ClientHandler> clientList = new ArrayList<ClientHandler>();
-
 
     private static void StartMultiserver() throws IOException {
     // Creates new socket
