@@ -2,8 +2,10 @@ package Server.src.main.java;
 
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,6 @@ public class MainServer {
     private static void StartMultiserver() throws IOException {
     // Creates new socket
     ServerSocket s = new ServerSocket(ClientHandler.PORT);
-
         while(true) {
             try {
                 Socket socket = s.accept();
@@ -33,8 +34,24 @@ public class MainServer {
         }
     }
 
-    public static void main(String[] args) {
-
-        System.out.print('n');
+    public static void main(String[] args) throws IOException {
+        String localHostIPAddress = InetAddress.getLocalHost().getHostAddress();
+        String strIPAddress = String.format("%-10s: %20s","Local IP",localHostIPAddress);
+        String strPort = String.format("%-10s: %20d","Port",ClientHandler.PORT);
+        System.out.println(strIPAddress);
+        System.out.println(strPort);
+        System.out.println("Server running & waiting for client connections.");
+        MainServer server = new MainServer();
+        new Thread(new ServerConsole()).start();
+        MainServer.StartMultiserver();
     }
+
+    public static List<Thread> getThreadList() {
+        return threadList;
+    }
+
+    public static List<ClientHandler> getClientList(){
+        return clientList;
+    }
+
 }

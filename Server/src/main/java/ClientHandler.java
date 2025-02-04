@@ -28,4 +28,17 @@ public class ClientHandler implements Runnable {
     public void run() {
 
     }
+
+    private void closeQuietly(){
+        try {
+            System.out.println(String.format("%s has disconnected.\n",clientMachine));
+            MainServer.getThreadList().remove(this);
+            socket.close();
+            in.close();
+            out.close();
+            MainServer.getClientList().remove(this);
+        } catch (IOException e) {
+        }
+    }
+
 }
